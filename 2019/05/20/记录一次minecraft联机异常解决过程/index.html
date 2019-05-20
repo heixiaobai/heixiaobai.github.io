@@ -22,7 +22,7 @@
 <p>看起来似乎没什么问题<br>服务端发送信息 -&gt; 客户端监听到 -&gt; 加入服务器  </p>
 <p>不过我对多播了解得并不深,仅限于与单播、广播区分  </p>
 <h3 id="开始尝试排查"><a href="#开始尝试排查" class="headerlink" title="开始尝试排查"></a>开始尝试排查</h3><p>使用Wireshark监听我的WLAN(我们使用无线网络进行联机)  </p>
-<p><img src="image/05-12-2019-Minecraft-Wireshark-WLAN.jpg" alt="Wireshark WLAN">  </p>
+<p><img src="image/Minecraft-Server-Multicast/05-12-2019-Minecraft-Wireshark-WLAN.jpg" alt="Wireshark WLAN">  </p>
 <p>从图中看来,是能正常接受到来自服务端(192.168.43.70)的多播信息的<br>但是为什么这样都还是没法正常搜索到游戏呢  </p>
 <h3 id="尝试查找解决方式"><a href="#尝试查找解决方式" class="headerlink" title="尝试查找解决方式"></a>尝试查找解决方式</h3><p>接着我搜索到了这篇文章<a href="https://blog.zencoffee.org/2016/12/minecraft-local-server-discovery-cant-find-lan-games/" target="_blank" rel="noopener">Minecraft Local Server Discovery – Can’t find LAN games?</a><br>文中提到作者因为网络接口优先级的问题,导致Minecraft绑定了错误的端口  </p>
 <p>使用命令<code>netsh interface ip show joins</code>查看各个网络适配器加入的多播组<br>正常的输出类似于：</p>
