@@ -22,8 +22,7 @@
 <p>看起来似乎没什么问题<br>服务端发送信息 -&gt; 客户端监听到 -&gt; 加入服务器  </p>
 <p>不过我对多播了解得并不深,仅限于与单播、广播区分  </p>
 <h3 id="开始尝试排查"><a href="#开始尝试排查" class="headerlink" title="开始尝试排查"></a>开始尝试排查</h3><p>使用Wireshark监听我的WLAN(我们使用无线网络进行联机)  </p>
-  
-<p><img src="/05-12-2019-Minecraft-Wireshark-WLAN.jpg" alt>  </p>
+<p><img src="image/05-12-2019-Minecraft-Wireshark-WLAN.jpg" alt="Wireshark WLAN">  </p>
 <p>从图中看来,是能正常接受到来自服务端(192.168.43.70)的多播信息的<br>但是为什么这样都还是没法正常搜索到游戏呢  </p>
 <h3 id="尝试查找解决方式"><a href="#尝试查找解决方式" class="headerlink" title="尝试查找解决方式"></a>尝试查找解决方式</h3><p>接着我搜索到了这篇文章<a href="https://blog.zencoffee.org/2016/12/minecraft-local-server-discovery-cant-find-lan-games/" target="_blank" rel="noopener">Minecraft Local Server Discovery – Can’t find LAN games?</a><br>文中提到作者因为网络接口优先级的问题,导致Minecraft绑定了错误的端口  </p>
 <p>使用命令<code>netsh interface ip show joins</code>查看各个网络适配器加入的多播组<br>正常的输出类似于：</p>
@@ -41,10 +40,10 @@
 <h4 id="解决"><a href="#解决" class="headerlink" title="解决"></a>解决</h4><p>在一个帖子中发现有人提到Windows不提供直接加入的多播组的方式,需要实现的话可以通过socket实现  </p>
 <p>不过由于我对于socket并不太熟悉,这里直接参考别人的代码<br><a href="https://www.cnblogs.com/fishou/p/4194316.html" target="_blank" rel="noopener">python实现多播数据的发送和接收</a>  </p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> socket </span><br><span class="line"></span><br><span class="line">ANY = str(input(<span class="string">"输入IP:"</span>))	<span class="comment"># 输入希望加入多播组的网络适配器的IP</span></span><br><span class="line">MCAST_ADDR = <span class="string">'224.0.2.60'</span>	<span class="comment"># 224.0.2.60是Minecraft服务端向局域网发送主机信息的多播地址</span></span><br><span class="line">MCAST_PORT = <span class="number">4445</span></span><br><span class="line"></span><br><span class="line">sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP) <span class="comment">#创建UDP socket</span></span><br><span class="line">sock.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,<span class="number">1</span>) <span class="comment">#允许端口复用</span></span><br><span class="line">sock.bind((ANY,MCAST_PORT))</span><br><span class="line">sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, <span class="number">255</span>)</span><br><span class="line">status = sock.setsockopt(socket.IPPROTO_IP,</span><br><span class="line">socket.IP_ADD_MEMBERSHIP,</span><br><span class="line">socket.inet_aton(MCAST_ADDR) + socket.inet_aton(ANY));</span><br><span class="line"></span><br><span class="line">sock.setblocking(<span class="number">0</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="number">1</span>:</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        data, addr = sock.recvfrom(<span class="number">1024</span>)</span><br><span class="line">    <span class="keyword">except</span> BaseException:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        print(<span class="string">"FROM: "</span>, addr)</span><br><span class="line">        print(<span class="string">"DATA: "</span>, data.decode(<span class="string">'utf-8'</span>))</span><br></pre></td></tr></table></figure>
-<p>保存为文件并执行后<br><br>从输出信息可以看到服务端的IP与端口,以及服务端的信息  </p>
-<p>再次执行<code>netsh interface ip show joins</code>可以看到,WLAN接口以及加入多播组<br>  </p>
+<p>保存为文件并执行后<br><img src="image/Minecraft-Server-Multicast/05-12-2019-Minecraft-Python.jpg" alt="Python Code"><br>从输出信息可以看到服务端的IP与端口,以及服务端的信息  </p>
+<p>再次执行<code>netsh interface ip show joins</code>可以看到,WLAN接口以及加入多播组<br><img src="image/Minecraft-Server-Multicast/05-12-2019-Minecraft-Network-Join.jpg" alt="Network Join">  </p>
 <p>不过这种方式不太清楚是否能让Minecraft客户端正确搜索到服务端<br>因为实际上建立连接并监听的是Python,而不是Minecraft  </p>
-<p>查看Minecraft客户端<br><br>成功搜索到服务端信息  </p>
+<p>查看Minecraft客户端<br><img src="image/Minecraft-Server-Multicast/05-12-2019-Minecraft-Client-2.jpg" alt="Client 2"><br>成功搜索到服务端信息  </p>
 <p>不过尽管整套流程下来,成功解决问题,但还是不清楚是怎么解决的<br>因为对于网络系统实现机制,以及Minecraft的网络发现机制不太清楚</p>
 <p>不过相信总有一天回头再看看,会理解这一切  </p>
 </div><hr></div><div class="recent-post-item article-container"><a class="article-title" href="/2019/05/12/我的新博客/">我的新博客</a><time class="post-meta__date"><i class="fa fa-calendar" aria-hidden="true"></i> 2019-05-12</time><span class="article-meta"><span class="article-meta__separator">|</span><i class="fa fa-inbox article-meta__icon" aria-hidden="true"></i><a class="article-meta__categories" href="/categories/博客/">博客</a></span><div class="content"><h1 id="博客重新上线"><a href="#博客重新上线" class="headerlink" title="博客重新上线"></a>博客重新上线</h1><p>在咕咕咕了大半年之后,我重新上线了我的博客<br>并准备继续一直咕咕咕下去(理直气壮)  </p>
