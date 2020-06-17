@@ -16,6 +16,8 @@
 <p>Python                 3.8<br>Flask                     1.1.2<br>Flask-Session      0.3.2<br>redis                     3.5.3</p>
 </blockquote>
 <p>目前已完成upload与download两个接口实现整存整取，后期可能会加入基于时间戳的每个单独配置项的单独同步<br>用户传递的数据被存储于Redis中<br>下面是代码逻辑整理</p>
+<a id="more"></a>
+
 <p>导入依赖以及服务器配置，开发过程中的自定义函数个人习惯放在<code>fun.py</code></p>
 <figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">from</span> flask <span class="keyword">import</span> Flask, request, session</span><br><span class="line"><span class="comment"># 服务端配置文件</span></span><br><span class="line"><span class="keyword">import</span> config</span><br><span class="line"><span class="keyword">import</span> redis</span><br><span class="line"><span class="keyword">import</span> json</span><br><span class="line"><span class="comment"># 自定义函数</span></span><br><span class="line"><span class="keyword">import</span> fun</span><br></pre></td></tr></table></figure>
 
